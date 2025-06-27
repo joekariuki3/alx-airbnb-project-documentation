@@ -147,3 +147,99 @@ Enables users to book properties, check availability, cancel bookings, and view 
 
 - Availability check must complete < 200ms
 - Concurrent booking attempts must be atomic (transaction-safe)
+
+## 4. Payments
+
+### Description
+
+Handles processing of guest payments and host payouts using secure payment gateways (e.g., Stripe, PayPal, M-pesa).
+
+### 🔹 API Endpoints
+
+- `POST /payments/` – Process a payment for a booking
+
+### 🔹 Input Specification
+
+```json
+{
+  "bookingId": 201,
+  "amount": 225.0,
+  "currency": "KSH",
+  "paymentMethodId": 3,
+  "cardToken": "tok_visa"
+}
+```
+
+### Output Specification
+
+```json
+{
+  "paymentId": 301,
+  "status": "success",
+  "bookingId": 201,
+  "amount": 225.0,
+  "paymentGateway": "stripe",
+  "transactionId": "txn_123456789"
+}
+```
+
+### Validation Rules
+
+- Booking must exist and be in “confirmed” status
+- Amount must match booking total
+- Secure card/token verification required
+
+### Performance Criteria
+
+- Payment processing time: < 2s
+- Retry logic for temporary gateway failures
+- Secure with HTTPS and PCI-compliant methods
+
+## 5. Reviews
+
+### Description
+
+Allows guests to leave reviews and ratings for completed stays. Hosts can respond.
+
+### API Endpoints
+
+- `GET /reviews/` – List all reviews
+- `POST /reviews/` – Submit a new review
+- `GET /reviews/{review_id}/` – Get a specific review
+- `PUT /reviews/{review_id}/` – Update a review (optional)
+- `DELETE /reviews/{review_id}/` – Delete a review
+
+### Input Specification (POST /reviews/)
+
+```json
+{
+  "propertyId": 201,
+  "userId": 5,
+  "rating": 4,
+  "comment": "Great stay and clean property!"
+}
+```
+
+### Output Specification
+
+```json
+{
+  "reviewId": 401,
+  "propertyId": 201,
+  "userId": 5,
+  "rating": 4,
+  "comment": "Great stay and clean property!",
+  "createdAt": "2025-07-15T12:00:00Z"
+}
+```
+
+### Validation Rules
+
+- One review per booking per property (per user)
+- Rating must be an integer (1–5)
+- Only users with completed bookings can review
+
+### Performance Criteria
+
+- Reviews fetched with pagination
+- Indexed queries by property for fast access
